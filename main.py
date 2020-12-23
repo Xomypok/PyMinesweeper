@@ -1,18 +1,11 @@
 #SETTINGS--------------------------
 
-
-X_SIZE = 20 #Клеток по горизонтали
-
-Y_SIZE = 35 #Клеток по вертикали
-
-count = 105 # Кол-во мин
-
-CELL_COLOR = "#888"
+DEFAULT_CELL_COLOR = "#888"
+CELL_COLOR = DEFAULT_CELL_COLOR
+DUNGEON_CELL_COLOR = "#800"
 BORDER_WIDTH=1
 BUTTON_WIDTH=2
 
-#this is good
-#and lol
 #END_SETTINGS----------------------
 
 from datetime import datetime
@@ -24,10 +17,8 @@ from tkinter import messagebox as mb
 level = None
 
 id_counter = 0
+bombs_count=None
 
-M = X_SIZE #кол-во клеток по горизонтали
-N = Y_SIZE # вертикали
-bombs_count = count
 mines = []
 opened = []
 checked = []
@@ -51,8 +42,9 @@ class Popup_window(Toplevel):
 		pass
 
 class Settings_window(Popup_window):
-	def __init__(self, var):
+	def __init__(self, var, parent):
 		self.var = var
+		self.parent = parent
 		Popup_window.__init__(self)
 
 	def build(self):
@@ -73,10 +65,14 @@ class Settings_window(Popup_window):
 		#ok_cancel
 
 	def set_level(self, level):
+		global CELL_COLOR
 		self.var.set(levels[level])
-
-def settings():
-	Settings_window(level)
+		if level==4:
+			CELL_COLOR = DUNGEON_CELL_COLOR
+		else:
+			CELL_COLOR = DEFAULT_CELL_COLOR
+		self.parent.new_game()
+		self.destroy()
 
 
 def check_win():
@@ -202,13 +198,16 @@ class Field(Frame):
 		display.pack(fill=X)
 		Label(display, text="Мин: ").pack(side=LEFT)
 		Label(display, textvariable=mines_remaining).pack(side=LEFT)
-		Button(display, text="Настройки", command=settings).pack(side=LEFT)
+		Button(display, text="Настройки", command=self.settings).pack(side=LEFT)
 		Label(display, textvariable=time).pack(side=RIGHT)
 		Label(display, text="Время:").pack(side=RIGHT)
 		Button(display, text=":-)", command=self.new_game).pack(side=TOP)
 		Frame.__init__(self)
 		self.pack(fill=BOTH, expand=1)
 		self.new_game()
+
+	def settings(self):
+		Settings_window(level, self)
 
 	def timer(self):
 		now = datetime.now()
