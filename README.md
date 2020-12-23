@@ -1,3 +1,3 @@
-#PyMinesweeper
+# PyMinesweeper
 **PyMinesweeper** - это сапёр, отличительной чертой которого является эта черта:
 ____
