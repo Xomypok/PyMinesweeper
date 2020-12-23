@@ -7,6 +7,10 @@ Y_SIZE = 35 #Клеток по вертикали
 
 count = 105 # Кол-во мин
 
+CELL_COLOR = "#888"
+BORDER_WIDTH=1
+BUTTON_WIDTH=2
+
 #this is good
 #and lol
 #END_SETTINGS----------------------
@@ -17,6 +21,7 @@ from tkinter import *
 from random import choice
 from tkinter import messagebox as mb
 
+level = None
 
 id_counter = 0
 
@@ -30,6 +35,48 @@ blocks = []
 firstclick = True
 play=False
 start = None
+
+levels = dict()
+levels[1] = "10 10 10"
+levels[2] = "15 9 20"
+levels[3] = "20 12 30"
+levels[4] = "20 12 45"
+
+class Popup_window(Toplevel):
+	def __init__(self):
+		Toplevel.__init__(self)
+		self.build()
+
+	def build(self):
+		pass
+
+class Settings_window(Popup_window):
+	def __init__(self, var):
+		self.var = var
+		Popup_window.__init__(self)
+
+	def build(self):
+		#Caption
+		self.title("Настройки")
+		#Select difficulty
+		Label(self, text="Выберите сложность:").pack()
+		diff = Frame(self)
+		diff.pack()
+		Label(diff, text="Новичок").grid(row=0, column=0)
+		Label(diff, text="Любитель").grid(row=1, column=0)
+		Label(diff, text="Профессионал").grid(row=2, column=0)
+		Label(diff, text="Dungeon Master").grid(row=3, column=0)
+		Button(diff, text="Выбрать", command=lambda: self.set_level(1)).grid(row=0, column=1)
+		Button(diff, text="Выбрать", command=lambda: self.set_level(2)).grid(row=1, column=1)
+		Button(diff, text="Выбрать", command=lambda: self.set_level(3)).grid(row=2, column=1)
+		Button(diff, text="Выбрать", command=lambda: self.set_level(4)).grid(row=3, column=1)
+		#ok_cancel
+
+	def set_level(self, level):
+		self.var.set(levels[level])
+
+def settings():
+	Settings_window(level)
 
 
 def check_win():
@@ -67,7 +114,7 @@ class Block(Button):
 	def __init__(self, master):
 		global id_counter
 		self.arounds = []
-		Button.__init__(self, master, width=1, command=self.open, bg="cyan")
+		Button.__init__(self, master, width=BUTTON_WIDTH, command=self.open, bg=CELL_COLOR, borderwidth=BORDER_WIDTH)
 		self.id = id_counter
 		id_counter+=1
 		self.bind("<3>", self.check_as_bomb)
@@ -144,7 +191,9 @@ class Field(Frame):
 	"""
 	
 	def __init__(self):
-		global mines_remaining, time
+		global mines_remaining, time, level
+		level = StringVar()
+		level.set(levels[1])
 		mines_remaining = IntVar()
 		mines_remaining.set(bombs_count)
 		time = IntVar()
@@ -153,13 +202,13 @@ class Field(Frame):
 		display.pack(fill=X)
 		Label(display, text="Мин: ").pack(side=LEFT)
 		Label(display, textvariable=mines_remaining).pack(side=LEFT)
+		Button(display, text="Настройки", command=settings).pack(side=LEFT)
 		Label(display, textvariable=time).pack(side=RIGHT)
 		Label(display, text="Время:").pack(side=RIGHT)
 		Button(display, text=":-)", command=self.new_game).pack(side=TOP)
 		Frame.__init__(self)
 		self.pack(fill=BOTH, expand=1)
-		self.draw_blocks()
-		self.set_arounds()
+		self.new_game()
 
 	def timer(self):
 		now = datetime.now()
@@ -169,7 +218,8 @@ class Field(Frame):
 			root.after(1000, self.timer)
 
 	def new_game(self):
-		global mines, opened, checked, blocks, firstclick
+		global mines, opened, checked, blocks, firstclick, M, N, bombs_count
+		N, M, bombs_count = list(map(int, level.get().split()))
 		mines = []
 		opened = []
 		checked = []
